@@ -1,0 +1,27 @@
+﻿@model IEnumerable<TestFromProdWebApp.Models.Shipment>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Service Name</th>
+        <th>Sender Name</th>
+        <th>CorrelationId</th>
+        <th>ItemCount</th>
+    </tr>
+
+    @{
+        if (Model != null && Model.Count() > 0 )
+        {
+            foreach (var record in Model)
+            {
+    <tr>
+        <td>@record.ServiceName</td>
+        <td>@record.SenderName</td>
+        <td>@record.CorrelationId</td>
+        <td>@record.ItemCount</td>
+    </tr>
+            }
+
+        }
+    }
+</table>
+<button type="button">Submit</button>
