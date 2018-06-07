@@ -1,27 +1,65 @@
 ﻿@model IEnumerable<TestFromProdWebApp.Models.Shipment>
 
-<table class="table table-bordered">
+<div class="row">
+    <div class="col-md-6">
+        @{
+            if (ViewBag.RecordCount != null)
+            {
+                <p> Total Records:@ViewBag.RecordCount</p>
+            }
+
+        }
+    </div>
+    <div class="col-md-3">
+        <p> Select Environment to post the payload</p>
+
+    </div>
+    <div class="col-md-3">
+        <select class="env">
+            <option>SIT</option>
+            <option>UAT</option>
+        </select>
+    </div>
+</div>
+
+<table class="table table-bordered searchResultTable">
     <tr>
         <th>Service Name</th>
         <th>Sender Name</th>
         <th>CorrelationId</th>
+        <th>SalesOrder Type</th>
         <th>ItemCount</th>
+        <th>Submit</th>
     </tr>
 
     @{
-        if (Model != null && Model.Count() > 0 )
+        if (Model != null && Model.Count() > 0)
         {
             foreach (var record in Model)
             {
-    <tr>
-        <td>@record.ServiceName</td>
-        <td>@record.SenderName</td>
-        <td>@record.CorrelationId</td>
-        <td>@record.ItemCount</td>
-    </tr>
+                <tr>
+                    <td>@record.ServiceName</td>
+                    <td>@record.SenderName</td>
+                    <td class="correlationId">@record.CorrelationId</td>
+                    <td>
+                        @{
+                            string salesOrderType = string.Empty;
+                            foreach (var salesorderType in record.SalesOrderType)
+                            {
+                                salesOrderType += salesorderType + " ";
+                            }
+                        }
+                        @salesOrderType
+
+                    </td>
+                    <td>@record.ItemCount</td>
+                    <td>
+
+                        <button class="btn btn-primary btnpost">Post</button>
+                    </td>
+                </tr>
             }
 
         }
     }
 </table>
-<button type="button">Submit</button>

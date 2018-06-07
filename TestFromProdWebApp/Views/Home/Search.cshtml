@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = "All Shipment From Production";
+}
+
+@model TestFromProdWebApp.Models.SearchViewModel
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                <tr>
+                    <td>Search For</td>
+                    <td>
+                        @if (ViewBag.SearchList != null)
+                        {
+                        @Html.DropDownList("Shipment_SearchName", new SelectList(ViewBag.SearchList, "Text", "Value"), new { @class = "form-control" })
+                        }
+                        else
+                        {
+                     
+                            <select>
+                                <option>Select</option>
+                            </select>
+                        }
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(m => m.Shipment.SenderName, new { @class = "form-control" })
+                    </td>
+                </tr>
+            </table>
+
+            <button type="button" id="btnSearch">Search</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="divSearchResult">
+            @*@Html.Partial("SearchFromCosmosDB", Model.ShipmentResult);*@
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#btnSearch").click(function () {
+            var Shipment = {};
+            Shipment.ServiceName = $("#Shipment_ServiceName").val();
+            Shipment.SenderName = $("#Shipment_SenderName").val();
+
+            $.ajax({
+                method: "Post",
+                url: "@Url.Action("SearchFromCosmosDB", "Home")",
+                data: Shipment
+            }).then(function success(data) {
+                //here we will get the response
+                $("#divSearchResult").html(data);
+            });
+        });
+    });
+</script>

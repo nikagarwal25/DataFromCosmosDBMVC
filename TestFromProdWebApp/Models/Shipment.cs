@@ -24,6 +24,7 @@ namespace TestFromProdWebApp.Models
         public int TotalPalletCount { get; set; }
         public int TotalCartonCount { get; set; }
         public int ItemCount { get; set; }
+        public List<string> SalesOrderType { get; set; }
         public List<string> Scenario { get; set; }
         public List<string> SerialNumber { get; set; }
     }

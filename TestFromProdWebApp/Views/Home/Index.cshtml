@@ -11,11 +11,19 @@
                 <tr>
                     <td>Service Name</td>
                     <td>
-                        @Html.TextBoxFor(m => m.Shipment.ServiceName, new { @class = "form-control" })
+                        @Html.DropDownList("Shipment_ServiceName", new SelectList(ViewBag.ServiceNameList, "Text", "Value"))
+                    </td>
+                    <td>Scenario</td>
+                    <td>
+                        @Html.DropDownList("Shipment_Scenario", new SelectList(ViewBag.ScenariosList, "Text", "Value"))
+                    </td>
+                    <td>SalesOrder Type</td>
+                    <td>
+                        @Html.DropDownList("Shipment_SalesOrderType", new SelectList(ViewBag.SalesOrderTypeList, "Text", "Value"))
                     </td>
                     <td>Sender Name</td>
                     <td>
-                        @Html.TextBoxFor(m => m.Shipment.SenderName, new { @class = "form-control" })
+                        @Html.DropDownList("Shipment_SenderName", new SelectList(ViewBag.SenderNameList, "Text", "Value"))
                     </td>
                 </tr>
             </table>
@@ -37,12 +45,27 @@
         $("#btnSearch").click(function () {
             var Shipment = {};
             Shipment.ServiceName = $("#Shipment_ServiceName").val();
+            Shipment.Scenario = $("#Shipment_Scenario").val();
+            Shipment.SalesOrderType = $("#Shipment_SalesOrderType").val();
             Shipment.SenderName = $("#Shipment_SenderName").val();
-            
+
             $.ajax({
                 method: "Post",
-                url: "@Url.Action("Search","Home")",
+                url: "@Url.Action("SearchHomePage", "Home")",
                 data: Shipment
+            }).then(function success(data) {
+                $("#divSearchResult").html(data);
+            });
+        });
+
+        $("#divSearchResult").on("click", ".btnpost", function () {
+            debugger;
+            var correlationId = $(this).closest('tr').find('.correlationId').text();
+            var environ = $('.env').val();
+            $.ajax({
+                method: "Post",
+                url: "@Url.Action("PostToService", "Home")",
+                data: { "correlationId": correlationId, "environment":environ }
             }).then(function success(data) {
                 //here we will get the response
                 $("#divSearchResult").html(data);
