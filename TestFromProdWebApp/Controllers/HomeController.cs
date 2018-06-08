@@ -7,6 +7,9 @@ using System.Web;
 using System.Web.Mvc;
 using TestFromProdWebApp.Models;
 using TestFromProdWebApp.Repository;
+using Microsoft.WindowsAzure;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage;
 
 namespace TestFromProdWebApp.Controllers
 {
@@ -42,7 +45,7 @@ namespace TestFromProdWebApp.Controllers
 
             List<SelectListItem> SalesOrderTypeList = new List<SelectListItem>();
             SalesOrderTypeList.Add(new SelectListItem() { Text = "All", Value = "All" });
-            SalesOrderTypeList.Add(new SelectListItem() { Text = "Z4MO", Value = "Z4OM" });
+            SalesOrderTypeList.Add(new SelectListItem() { Text = "Z4OM", Value = "Z4OM" });
             SalesOrderTypeList.Add(new SelectListItem() { Text = "Z4OR", Value = "Z4OR" });
             ViewBag.SalesOrderTypeList = SalesOrderTypeList;
 
@@ -55,7 +58,7 @@ namespace TestFromProdWebApp.Controllers
             List<SelectListItem> SearchList = new List<SelectListItem>();
             SearchList.Add(new SelectListItem() { Text = "All", Value = "All" });
             SearchList.Add(new SelectListItem() { Text = "LoadId", Value = "LoadId" });
-            SearchList.Add(new SelectListItem() { Text = "SerailNumber", Value = "SerailNumber" });
+            SearchList.Add(new SelectListItem() { Text = "SerialNumber", Value = "SerailNumber" });
             SearchList.Add(new SelectListItem() { Text = "CorrelationId", Value = "CorrelationId" });
             ViewBag.SearchList = SearchList;
 
@@ -117,10 +120,85 @@ namespace TestFromProdWebApp.Controllers
 
         [HttpPost]
         [ActionName("PostToService")]
-        public ActionResult PostToService(string correlationId, string environment)
+        public ActionResult PostToService(string correlationId, string environment, string serviceName)
         {
             //Search
+            if (String.Compare(environment, "SIT") == 0)
+            {
+                //Prod blob storage
+                string payload = string.Empty;
+                string prodstorageAccountName = "";
+                string prodstorageAccountKey = "";
+                string prodcontainerName = "allshipment";
+                string prodConnectionString = string.Format(@"DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}",
+                                             prodstorageAccountName, prodstorageAccountKey);
+                var cloudStorageAccount = CloudStorageAccount.Parse(prodConnectionString);
+                var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(prodcontainerName);
+
+                CloudBlockBlob blobSource = cloudBlobContainer.GetBlockBlobReference(String.Format("{0}.json",correlationId));
+                if (blobSource.Exists())
+                {
+                    payload = blobSource.DownloadText();
+                }
+                
+                if (String.Compare(serviceName, "CMShipment") == 0)
+                {
+                    var response = PostCMShipment(correlationId, payload).Result;
+                }
+               else
+                {
+                    var response = PostRCShipment(correlationId, payload).Result;
+                }
+                //SIT Blob storage
+            }
             return View();
+        }
+
+        private  async Task<string> PostCMShipment(string correlationId, string payload)
+        {
+            try
+            {
+                string authority = "https://login.microsoftonline.com/scsdirectorydev.onmicrosoft.com";
+                string clientId = "";
+                string appKey = "";
+                string resourceId = "https://supplychainservices.microsoft.com/";
+                string apimSubscriptionKey = "something";
+                int delayTimeInSecondBetweenRetrys = 1;
+                int maxRetries = 1;
+                string baseUrl = @"https://";
+                string relativeUrl = "?CorrelationId={0}";
+                string apiName = "something";
+                RestApiSubmitter restapiSubmitter = new RestApiSubmitter(authority, clientId, appKey, resourceId, apimSubscriptionKey, delayTimeInSecondBetweenRetrys, maxRetries, baseUrl, relativeUrl, apiName);
+                return await restapiSubmitter.Submit(correlationId, payload);
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private async Task<string> PostRCShipment(string correlationId, string payload)
+        {
+            try
+            {
+                string authority = "https://login.microsoftonline.com/scsdirectorydev.onmicrosoft.com";
+                string clientId = "";
+                string appKey = "";
+                string resourceId = "https://supplychainservices.microsoft.com/";
+                string apimSubscriptionKey = "something";
+                int delayTimeInSecondBetweenRetrys = 1;
+                int maxRetries = 1;
+                string baseUrl = @"";
+                string relativeUrl = "?CorrelationId={0}";
+                string apiName = "something";
+                RestApiSubmitter restapiSubmitter = new RestApiSubmitter(authority, clientId, appKey, resourceId, apimSubscriptionKey, delayTimeInSecondBetweenRetrys, maxRetries, baseUrl, relativeUrl, apiName);
+                return await restapiSubmitter.Submit(correlationId, payload);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }

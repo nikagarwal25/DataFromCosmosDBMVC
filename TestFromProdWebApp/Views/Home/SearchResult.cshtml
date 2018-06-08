@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<TestFromProdWebApp.Models.Shipment>
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-3">
         @{
             if (ViewBag.RecordCount != null)
             {
@@ -20,6 +20,9 @@
             <option>UAT</option>
         </select>
     </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary btnpost">Post</button>
+    </div>
 </div>
 
 <table class="table table-bordered searchResultTable">
@@ -28,8 +31,9 @@
         <th>Sender Name</th>
         <th>CorrelationId</th>
         <th>SalesOrder Type</th>
+        <th>Scenario Type</th>
         <th>ItemCount</th>
-        <th>Submit</th>
+        <th>Select</th>
     </tr>
 
     @{
@@ -38,7 +42,7 @@
             foreach (var record in Model)
             {
                 <tr>
-                    <td>@record.ServiceName</td>
+                    <td class="servicename">@record.ServiceName</td>
                     <td>@record.SenderName</td>
                     <td class="correlationId">@record.CorrelationId</td>
                     <td>
@@ -50,12 +54,21 @@
                             }
                         }
                         @salesOrderType
-
+                    </td>
+                    <td>
+                        @{
+                            string scenarioType = string.Empty;
+                            foreach (var scenario in record.Scenario)
+                            {
+                                scenarioType += scenario + " ";
+                            }
+                        }
+                        @scenarioType
                     </td>
                     <td>@record.ItemCount</td>
                     <td>
-
-                        <button class="btn btn-primary btnpost">Post</button>
+                        <input type="checkbox" id="postToService">
+                        @*<button class="btn btn-primary btnpost">Post</button>*@
                     </td>
                 </tr>
             }

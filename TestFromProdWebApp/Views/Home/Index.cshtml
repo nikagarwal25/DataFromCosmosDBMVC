@@ -28,7 +28,7 @@
                 </tr>
             </table>
 
-            <button type="button" id="btnSearch">Search</button>
+            <button type="button" id="btnSearch" class="btn btn-primary">Search</button>
         </div>
     </div>
     <div class="row">
@@ -48,28 +48,36 @@
             Shipment.Scenario = $("#Shipment_Scenario").val();
             Shipment.SalesOrderType = $("#Shipment_SalesOrderType").val();
             Shipment.SenderName = $("#Shipment_SenderName").val();
-
+            Loading(true);
             $.ajax({
                 method: "Post",
                 url: "@Url.Action("SearchHomePage", "Home")",
                 data: Shipment
             }).then(function success(data) {
+                
                 $("#divSearchResult").html(data);
-            });
+                Loading(false);
+                });
+           
         });
 
         $("#divSearchResult").on("click", ".btnpost", function () {
             debugger;
-            var correlationId = $(this).closest('tr').find('.correlationId').text();
+            var correlationId = $("#postToService").closest('tr').find('.correlationId').text();
+            var serviceName = $("#postToService").closest('tr').find('.servicename').text();
             var environ = $('.env').val();
+            Loading(true);
             $.ajax({
                 method: "Post",
                 url: "@Url.Action("PostToService", "Home")",
-                data: { "correlationId": correlationId, "environment":environ }
+                data: {
+                    "correlationId": correlationId, "environment": environ, "serviceName": serviceName }
             }).then(function success(data) {
                 //here we will get the response
                 $("#divSearchResult").html(data);
-            });
+                Loading(false);
+                });
+           
         });
     });
 </script>
