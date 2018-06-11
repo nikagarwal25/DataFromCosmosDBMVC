@@ -14,17 +14,19 @@
         <p> Select Environment to post the payload</p>
 
     </div>
-    <div class="col-md-3">
+    <div class="col-md-6">
         <select class="env">
             <option>SIT</option>
             <option>UAT</option>
         </select>
     </div>
-    <div class="col-md-3">
+    @*<div class="col-md-3">
         <button class="btn btn-primary btnpost">Post</button>
-    </div>
+    </div>*@
 </div>
+<div class="postResponse">
 
+    </div>
 <table class="table table-bordered searchResultTable">
     <tr>
         <th>Service Name</th>
@@ -33,7 +35,7 @@
         <th>SalesOrder Type</th>
         <th>Scenario Type</th>
         <th>ItemCount</th>
-        <th>Select</th>
+        <th> <button class="btn btn-primary btnpost">Post</button></th>
     </tr>
 
     @{
@@ -67,7 +69,7 @@
                     </td>
                     <td>@record.ItemCount</td>
                     <td>
-                        <input type="checkbox" id="postToService">
+                        <input type="checkbox" class="postToService">
                         @*<button class="btn btn-primary btnpost">Post</button>*@
                     </td>
                 </tr>

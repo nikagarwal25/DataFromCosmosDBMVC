@@ -4505,9 +4505,10 @@ textarea.input-group-sm > .input-group-btn > .btn {
     border-color: #285e8e;
 }
 
-.navbar-inverse .navbar-brand {
-  color: black;
-}
+    .navbar-inverse .navbar-brand {
+        color: white;
+        font-size: 18px;    
+    }
 
 .navbar-inverse .navbar-brand:hover,
 .navbar-inverse .navbar-brand:focus {

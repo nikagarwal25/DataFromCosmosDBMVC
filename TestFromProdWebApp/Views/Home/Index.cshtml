@@ -1,10 +1,11 @@
 ﻿@{
-    ViewBag.Title = "All Shipment From Production";
+    ViewBag.Title = "All Shipment Data from Production";
 }
-
+@using TestFromProdWebApp.Models
 @model TestFromProdWebApp.Models.SearchViewModel
 
 <div class="container">
+   
     <div class="row">
         <div class="col-md-12">
             <table class="table table-bordered">
@@ -25,16 +26,16 @@
                     <td>
                         @Html.DropDownList("Shipment_SenderName", new SelectList(ViewBag.SenderNameList, "Text", "Value"))
                     </td>
+                    <td> <button type="button" id="btnSearch" class="btn btn-primary">Search</button></td>
                 </tr>
             </table>
 
-            <button type="button" id="btnSearch" class="btn btn-primary">Search</button>
         </div>
     </div>
     <div class="row">
-       <div class="col-md-12" id="divSearchResult">
-           @Html.Partial("SearchResult", Model.ShipmentResult);
-       </div>
+        <div class="col-md-12" id="divSearchResult">
+            @Html.Partial("SearchResult", Model.ShipmentResult);
+        </div>
 
     </div>
 
@@ -42,6 +43,8 @@
 
 <script>
     $(document).ready(function () {
+
+
         $("#btnSearch").click(function () {
             var Shipment = {};
             Shipment.ServiceName = $("#Shipment_ServiceName").val();
@@ -54,17 +57,25 @@
                 url: "@Url.Action("SearchHomePage", "Home")",
                 data: Shipment
             }).then(function success(data) {
-                
+
                 $("#divSearchResult").html(data);
                 Loading(false);
                 });
-           
+
         });
+        //$(".searchResultTable").on("change", ".postToService", function () {
+        //    $(".postToService").attr("checked", false);
+        //    $(this).attr("checked", true);
+        //});
 
         $("#divSearchResult").on("click", ".btnpost", function () {
-            debugger;
-            var correlationId = $("#postToService").closest('tr').find('.correlationId').text();
-            var serviceName = $("#postToService").closest('tr').find('.servicename').text();
+            var correlationId;
+            var serviceName;
+            $(".postToService:checked").each(function () {
+                correlationId = $(this).closest('tr').find('.correlationId').text();
+                serviceName = $(this).closest('tr').find('.servicename').text();
+            });
+
             var environ = $('.env').val();
             Loading(true);
             $.ajax({
@@ -73,11 +84,23 @@
                 data: {
                     "correlationId": correlationId, "environment": environ, "serviceName": serviceName }
             }).then(function success(data) {
+                 @if (TempData.ContainsKey("Toastr"))
+    {
+        Toastr toastr = TempData["Toastr"] as Toastr;
+        @ToastrBuilder.ShowToastMessages(toastr);
+    }
                 //here we will get the response
-                $("#divSearchResult").html(data);
+                if (data.Status == true)
+                {
+                    $(".postResponse").text("Success! Posted to SIT.");
+                }
+                else
+                {
+                    $(".postResponse").text("Error! " + data.ResponseMessage);
+                }
                 Loading(false);
                 });
-           
+
         });
     });
 </script>

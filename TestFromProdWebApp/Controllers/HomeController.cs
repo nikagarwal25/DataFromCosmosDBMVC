@@ -10,6 +10,7 @@ using TestFromProdWebApp.Repository;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json.Linq;
 
 namespace TestFromProdWebApp.Controllers
 {
@@ -120,65 +121,64 @@ namespace TestFromProdWebApp.Controllers
 
         [HttpPost]
         [ActionName("PostToService")]
-        public ActionResult PostToService(string correlationId, string environment, string serviceName)
+        public async Task<JsonResult> PostToService(string correlationId, string environment, string serviceName)
         {
-            //Search
-            if (String.Compare(environment, "SIT") == 0)
-            {
-                //Prod blob storage
-                string payload = string.Empty;
-                string prodstorageAccountName = "";
-                string prodstorageAccountKey = "";
-                string prodcontainerName = "allshipment";
-                string prodConnectionString = string.Format(@"DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}",
-                                             prodstorageAccountName, prodstorageAccountKey);
-                var cloudStorageAccount = CloudStorageAccount.Parse(prodConnectionString);
-                var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(prodcontainerName);
-
-                CloudBlockBlob blobSource = cloudBlobContainer.GetBlockBlobReference(String.Format("{0}.json",correlationId));
-                if (blobSource.Exists())
-                {
-                    payload = blobSource.DownloadText();
-                }
-                
-                if (String.Compare(serviceName, "CMShipment") == 0)
-                {
-                    var response = PostCMShipment(correlationId, payload).Result;
-                }
-               else
-                {
-                    var response = PostRCShipment(correlationId, payload).Result;
-                }
-                //SIT Blob storage
-            }
-            return View();
-        }
-
-        private  async Task<string> PostCMShipment(string correlationId, string payload)
-        {
+            PostReponse responseObj = new PostReponse();
             try
             {
-                string authority = "https://login.microsoftonline.com/scsdirectorydev.onmicrosoft.com";
-                string clientId = "";
-                string appKey = "";
-                string resourceId = "https://supplychainservices.microsoft.com/";
-                string apimSubscriptionKey = "something";
-                int delayTimeInSecondBetweenRetrys = 1;
-                int maxRetries = 1;
-                string baseUrl = @"https://";
-                string relativeUrl = "?CorrelationId={0}";
-                string apiName = "something";
-                RestApiSubmitter restapiSubmitter = new RestApiSubmitter(authority, clientId, appKey, resourceId, apimSubscriptionKey, delayTimeInSecondBetweenRetrys, maxRetries, baseUrl, relativeUrl, apiName);
-                return await restapiSubmitter.Submit(correlationId, payload);
+                //Search
+                if (String.Compare(environment, "SIT") == 0)
+                {
+                    //Prod blob storage
+                    string payload = string.Empty;
+                    string response = string.Empty;
+                    string prodstorageAccountName = "";
+                    string prodstorageAccountKey = "";
+                    string prodcontainerName = "";
+                    string prodConnectionString = string.Format(@"DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}",
+                                                 prodstorageAccountName, prodstorageAccountKey);
+                    var cloudStorageAccount = CloudStorageAccount.Parse(prodConnectionString);
+                    var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+                    CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(prodcontainerName);
+
+                    CloudBlockBlob blobSource = cloudBlobContainer.GetBlockBlobReference(String.Format("{0}.json", correlationId));
+                    if (blobSource.Exists())
+                    {
+                        payload = blobSource.DownloadText();
+                    }
+                    if (String.Compare(serviceName, "CMShipment") == 0)
+                    {
+                        response = await PostCMShipmentSIT(correlationId, payload);
+                        responseObj.Status = true;
+                        responseObj.ResponseMessage = response;
+                    }
+                    else
+                    {
+                        response = await PostRCShipmentSIT(correlationId, payload);
+                        responseObj.Status = true;
+                        responseObj.ResponseMessage = response;
+                        this.AddToastMessage("Success!", $"{correlationId} has been successfully posted to {environment}", ToastType.Success);
+                    }
+                    //SIT Blob storage
+                }
             }
-            catch(Exception ex)
+            catch (RestApiSubmitterException ex)
             {
-                return null;
+                responseObj.ResponseMessage = ex.Message;
+                responseObj.Status = false;
+                var errorMessage = JObject.Parse(ex.Message)["errors"][0]["message"].ToString();
+                this.AddToastMessage("Error!", $"{correlationId}: {errorMessage}", ToastType.Error);
             }
+            catch (Exception ex)
+            {
+                responseObj.Status = false;
+                responseObj.ResponseMessage = ex.Message;
+                this.AddToastMessage("Error!", $"{correlationId} not posted to {environment}: {ex.Message}", ToastType.Error);
+            }
+            return Json(responseObj, JsonRequestBehavior.AllowGet);
         }
 
-        private async Task<string> PostRCShipment(string correlationId, string payload)
+        private async Task<string> PostCMShipmentSIT(string correlationId, string payload)
         {
             try
             {
@@ -195,9 +195,40 @@ namespace TestFromProdWebApp.Controllers
                 RestApiSubmitter restapiSubmitter = new RestApiSubmitter(authority, clientId, appKey, resourceId, apimSubscriptionKey, delayTimeInSecondBetweenRetrys, maxRetries, baseUrl, relativeUrl, apiName);
                 return await restapiSubmitter.Submit(correlationId, payload);
             }
+            catch (RestApiSubmitterException ex)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
-                return null;
+                throw;
+            }
+        }
+
+        private async Task<string> PostRCShipmentSIT(string correlationId, string payload)
+        {
+            try
+            {
+                string authority = "https://login.microsoftonline.com/scsdirectorydev.onmicrosoft.com";
+                string clientId = "";
+                string appKey = "";
+                string resourceId = "https://supplychainservices.microsoft.com/";
+                string apimSubscriptionKey = "something";
+                int delayTimeInSecondBetweenRetrys = 1;
+                int maxRetries = 1;
+                string baseUrl = @"https://";
+                string relativeUrl = "?CorrelationId={0}";
+                string apiName = "something";
+                RestApiSubmitter restapiSubmitter = new RestApiSubmitter(authority, clientId, appKey, resourceId, apimSubscriptionKey, delayTimeInSecondBetweenRetrys, maxRetries, baseUrl, relativeUrl, apiName);
+                return await restapiSubmitter.Submit(correlationId, payload);
+            }
+            catch (RestApiSubmitterException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
     }
