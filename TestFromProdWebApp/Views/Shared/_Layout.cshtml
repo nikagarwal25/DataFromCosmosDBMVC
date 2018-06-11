@@ -6,12 +6,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - All Shipment Application</title>
+    <link href="@Url.Content("~/Content/bootstrap.css")" rel="stylesheet" />
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
     @Styles.Render("~/Content/toastr")
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
-  
+
 </head>
 
 <body>
@@ -48,65 +49,88 @@
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
     @*@Html.Partial("_Toastr")*@
-</body>
 
 
-<div id="fade"></div>
-<div id="modalLoading">
-    <img id="loader" src="@Url.Content("~/Content/loading.gif")" style="height:50px; width:50px" />
-    <center><span>Loading...</span></center>
-</div>
+    <div id="notify" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header " id="notifyHeader">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="notifyHeaderMessage"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="notifyMessage"></p>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn pull-right lsgclr " data-dismiss="modal"
+                            id="notifyOK">
+                        OK
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="fade"></div>
+    <div id="modalLoading">
+        <img id="loader" src="@Url.Content("~/Content/loading.gif")" style="height:50px; width:50px" />
+        <center><span>Loading...</span></center>
+    </div>
 
 
-<style>
-    #fade {
-        display: none;
-        position: absolute;
-        top: 0%;
-        left: 0%;
-        width: 100%;
-        height: 100%;
-        background-color: #ababab;
-        z-index: 1001;
-        -moz-opacity: 0.8;
-        opacity: .70;
-        filter: alpha(opacity=80);
-    }
+    <style>
+        #fade {
+            display: none;
+            position: absolute;
+            top: 0%;
+            left: 0%;
+            width: 100%;
+            height: 100%;
+            background-color: #ababab;
+            z-index: 1001;
+            -moz-opacity: 0.8;
+            opacity: .70;
+            filter: alpha(opacity=80);
+        }
 
-    #modalLoading {
-        display: none;
-        position: absolute;
-        top: 45%;
-        left: 45%;
-        width: 100px;
-        height: 104px;
-        padding: 30px 15px 0px;
-        /*border: 3px solid #ababab;
+        #modalLoading {
+            display: none;
+            position: absolute;
+            top: 45%;
+            left: 45%;
+            width: 100px;
+            height: 104px;
+            padding: 30px 15px 0px;
+            /*border: 3px solid #ababab;
         box-shadow: 1px 1px 10px #ababab;
         border-radius: 20px;
         background-color: white;*/
-        z-index: 1002;
-        text-align: center;
-    }
-
-    #results {
-        font-size: 1.25em;
-        color: red;
-    }
-</style>
-<script>
-    function Loading(flag) {
-
-        if (flag) {
-            document.getElementById('modalLoading').style.display = 'block';
-            document.getElementById('fade').style.display = 'block';
+            z-index: 1002;
+            text-align: center;
         }
-        else {
-            document.getElementById('modalLoading').style.display = 'none';
-            document.getElementById('fade').style.display = 'none';
+
+        #results {
+            font-size: 1.25em;
+            color: red;
         }
-    }
+    </style>
+    <script>
+        function Loading(flag) {
 
+            if (flag) {
+                document.getElementById('modalLoading').style.display = 'block';
+                document.getElementById('fade').style.display = 'block';
+            }
+            else {
+                document.getElementById('modalLoading').style.display = 'none';
+                document.getElementById('fade').style.display = 'none';
+            }
+        }
+    </script>
 
-</script>
+</body>
 </html>

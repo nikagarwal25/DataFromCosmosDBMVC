@@ -5,7 +5,7 @@
 @model TestFromProdWebApp.Models.SearchViewModel
 
 <div class="container">
-   
+
     <div class="row">
         <div class="col-md-12">
             <table class="table table-bordered">
@@ -40,7 +40,6 @@
     </div>
 
 </div>
-
 <script>
     $(document).ready(function () {
 
@@ -57,24 +56,28 @@
                 url: "@Url.Action("SearchHomePage", "Home")",
                 data: Shipment
             }).then(function success(data) {
-
+                
                 $("#divSearchResult").html(data);
                 Loading(false);
                 });
 
         });
-        //$(".searchResultTable").on("change", ".postToService", function () {
-        //    $(".postToService").attr("checked", false);
-        //    $(this).attr("checked", true);
-        //});
+        $(".searchResultTable").on("change", ".postToService", function () {
+            $(".searchResultTable .postToService").each(function () {
+                $(this).prop("checked", false);
+            });
+            $(this).prop("checked", true);
+        });
 
         $("#divSearchResult").on("click", ".btnpost", function () {
             var correlationId;
             var serviceName;
+            var tdMessage;
             $(".postToService:checked").each(function () {
                 correlationId = $(this).closest('tr').find('.correlationId').text();
                 serviceName = $(this).closest('tr').find('.servicename').text();
-            });
+                tdMessage = $(this).closest('tr').find('.postResponse');
+            
 
             var environ = $('.env').val();
             Loading(true);
@@ -84,22 +87,24 @@
                 data: {
                     "correlationId": correlationId, "environment": environ, "serviceName": serviceName }
             }).then(function success(data) {
-                 @if (TempData.ContainsKey("Toastr"))
-    {
-        Toastr toastr = TempData["Toastr"] as Toastr;
-        @ToastrBuilder.ShowToastMessages(toastr);
-    }
+
+                Loading(false);
                 //here we will get the response
                 if (data.Status == true)
                 {
-                    $(".postResponse").text("Success! Posted to SIT.");
+                    $("#notify #notifyMessage").text(data.ResponseMessage);
+                    $('#notify').modal('show'); 
+                    tdMessage.text("Success! " + correlationId + " Posted to SIT.");
                 }
                 else
                 {
-                    $(".postResponse").text("Error! " + data.ResponseMessage);
+                    $("#notify #notifyMessage").text(data.ResponseMessage);
+                    $('#notify').modal('show'); 
+                    tdMessage   .text("Error! " + data.ResponseMessage);
                 }
-                Loading(false);
                 });
+
+            });
 
         });
     });
